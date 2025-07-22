@@ -8,5 +8,15 @@ function doGet() {
     return HtmlService.createHtmlOutput("❌ У вас немає доступу.");
   }
 
+  // Автоматичне створення тригера при першому вході
+  const triggers = ScriptApp.getProjectTriggers();
+  const hasBackupTrigger = triggers.some(t => t.getHandlerFunction() === "backupFolder");
+  if (!hasBackupTrigger) {
+    ScriptApp.newTrigger("backupFolder")
+      .timeBased()
+      .everyMinutes(5)
+      .create();
+  }
+
   return HtmlService.createTemplateFromFile("pages").evaluate();
 }
