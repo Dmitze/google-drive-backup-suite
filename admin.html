@@ -1,21 +1,46 @@
 <script>
-  google.script.run
-    .withSuccessHandler(users => {
-      const table = document.getElementById('userList');
-      users.forEach(u => {
-        const row = table.insertRow();
-        row.insertCell(0).innerText = u.email;
-        row.insertCell(1).innerText = u.role;
-        const editBtn = document.createElement('button');
-        editBtn.innerText = 'Редагувати';
-        editBtn.onclick = () => editUser(u.email);
-        row.insertCell(2).appendChild(editBtn);
-      });
-    })
-    .getAllUsers();
-</script>
+  google.script.run.withSuccessHandler(users => {
+    const table = document.getElementById('userList');
+    users.forEach(u => {
+      const row = table.insertRow();
+      row.insertCell(0).innerText = u.email;
+      row.insertCell(1).innerText = u.role;
 
-<h2>Користувачі</h2>
-<table id="userList">
-  <tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>
-</table>
+      const editBtn = document.createElement('button');
+      editBtn.innerText = 'Редагувати';
+      editBtn.onclick = () => openEditModal(u.email);
+
+      const delBtn = document.createElement('button');
+      delBtn.innerText = 'Видалити';
+      delBtn.onclick = () => deleteUser(u.email);
+
+      const logBtn = document.createElement('button');
+      logBtn.innerText = 'Логи';
+      logBtn.onclick = () => viewLogs(u.email);
+
+      const configBtn = document.createElement('button');
+      configBtn.innerText = 'Налаштування';
+      configBtn.onclick = () => editConfig(u.email);
+
+      const actionCell = row.insertCell(2);
+      actionCell.appendChild(editBtn);
+      actionCell.appendChild(delBtn);
+      actionCell.appendChild(logBtn);
+      actionCell.appendChild(configBtn);
+    });
+  }).getAllUsers();
+
+  function openEditModal(email) {
+    // Відкрити модальне вікно для редагування ролі
+  }
+  function deleteUser(email) {
+    google.script.run.deleteUser(email);
+    location.reload();
+  }
+  function viewLogs(email) {
+    google.script.run.withSuccessHandler(showLogsModal).getUserLogs(email);
+  }
+  function editConfig(email) {
+    google.script.run.withSuccessHandler(showConfigModal).getUserConfig(email);
+  }
+</script>
