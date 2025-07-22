@@ -1,20 +1,15 @@
-<script>
-  google.script.run
-    .withSuccessHandler(config => {
-      document.getElementById('user').value = config.user;
-      document.getElementById('folderIds').value = config.folderIds.join(', ');
-      document.getElementById('backupFolderName').value = config.backupFolderName || 'Резервні копії';
-      document.getElementById('enabled').checked = config.enabled;
-    })
-    .getConfig();
-</script>
-
 <form id="configForm">
   <input type="text" id="user" readonly>
-  <select id="folderIds" multiple>
-    <!-- заповнюється даними з аркуша "Папки" -->
-  </select>
+  <select id="folderIds" multiple></select>
   <input type="text" id="backupFolderName" placeholder="Назва резервної папки">
   <label><input type="checkbox" id="enabled"> Увімкнено</label>
+  <select id="frequency">
+    <option value="5">Кожні 5 хвилин</option>
+    <option value="30">Кожні 30 хвилин</option>
+    <option value="60">Щогодини</option>
+    <option value="daily">Щодня</option>
+    <option value="off">Вимкнено</option>
+  </select>
+  <input type="text" id="telegramId" placeholder="Telegram ID">
   <button type="submit">Зберегти</button>
 </form>
