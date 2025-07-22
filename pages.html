@@ -1,2 +1,16 @@
-<?!= HtmlService.createHtmlOutputFromFile('form').getContent(); ?>
-<?!= HtmlService.createHtmlOutputFromFile('admin').getContent(); ?>
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Резервне копіювання</title>
+  </head>
+  <body>
+
+    <!-- Форма для користувача -->
+    <?!= HtmlService.createHtmlOutputFromFile('form').getContent(); ?>
+
+    <!-- Адмін-панель (показується лише адміну) -->
+    <?!= HtmlService.createHtmlOutputFromFile('admin').getContent(); ?>
+
+  </body>
+</html>
