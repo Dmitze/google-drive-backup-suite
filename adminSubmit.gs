@@ -1,3 +1,9 @@
+function getAllUsers() {
+  const sheet = SpreadsheetApp.openById("ID_ТАБЛИЦІ").getSheetByName("Користувачі");
+  const data = sheet.getDataRange().getValues();
+  return data.map(row => ({ email: row[0], role: row[1] }));
+}
+
 function updateUserRole(email, role) {
   const sheet = SpreadsheetApp.openById("ID_ТАБЛИЦІ").getSheetByName("Користувачі");
   const data = sheet.getDataRange().getValues();
@@ -20,17 +26,17 @@ function getUserConfig(email) {
   const sheet = SpreadsheetApp.openById("ID_ТАБЛИЦІ").getSheetByName("Налаштування");
   const data = sheet.getDataRange().getValues();
   const row = data.find(r => r[0] === email);
-
   return row ? {
     user: row[0],
-    folderIds: row[1].split(',').map(id => id.trim()),
+    folderIds: row[1] ? row[1].split(',').map(id => id.trim()) : [],
     backupFolderName: row[2] || "Резервні копії",
-    enabled: row[3]
+    enabled: row[3] === true || row[3] === "TRUE" || row[3] === "true"
   } : null;
 }
 
 function getUserLogs(email) {
   const sheet = SpreadsheetApp.openById("ID_ТАБЛИЦІ").getSheetByName("Логи");
   const data = sheet.getDataRange().getValues();
+  // [date, user, folder, status, details?]
   return data.filter(r => r[1] === email);
 }
