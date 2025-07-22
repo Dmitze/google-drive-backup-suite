@@ -1,46 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Адмін-панель</title>
+  <style>
+    body { background: #222; color: #eee; font-family: Arial, sans-serif; }
+    table { width: 100%; background: #2d2d2d; color: #eee; border-collapse: collapse; }
+    th, td { padding: 8px; border: 1px solid #444; }
+    th { background: #333; }
+    button { margin: 2px; padding: 4px 8px; background: #444; color: #eee; border: none; border-radius: 3px; cursor: pointer; }
+    button:hover { background: #666; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
+    .modal-content { background: #232323; padding: 20px; border-radius: 6px; max-width: 400px; }
+    .modal label { display: block; margin-bottom: 8px; }
+    .modal input, .modal select { width: 100%; margin-bottom: 10px; padding: 6px; background: #333; color: #eee; border: 1px solid #444; border-radius: 3px; }
+    .modal .actions { text-align: right; }
+  </style>
+</head>
+<body>
+<h2>Користувачі</h2>
+<table id="userList">
+  <tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>
+</table>
+
+<div class="modal" id="editModal">
+  <div class="modal-content" id="editModalContent"></div>
+</div>
+<div class="modal" id="logModal">
+  <div class="modal-content" id="logModalContent"></div>
+</div>
+<div class="modal" id="configModal">
+  <div class="modal-content" id="configModalContent"></div>
+</div>
+
 <script>
+function closeModal(id) {
+  document.getElementById(id).style.display = "none";
+  document.getElementById(id + "Content").innerHTML = "";
+}
+
+function showModal(id, html) {
+  document.getElementById(id + "Content").innerHTML = html;
+  document.getElementById(id).style.display = "flex";
+}
+
+function reloadUsers() {
   google.script.run.withSuccessHandler(users => {
     const table = document.getElementById('userList');
+    table.innerHTML = '<tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>';
     users.forEach(u => {
       const row = table.insertRow();
       row.insertCell(0).innerText = u.email;
       row.insertCell(1).innerText = u.role;
 
-      const editBtn = document.createElement('button');
-      editBtn.innerText = 'Редагувати';
-      editBtn.onclick = () => openEditModal(u.email);
-
-      const delBtn = document.createElement('button');
-      delBtn.innerText = 'Видалити';
-      delBtn.onclick = () => deleteUser(u.email);
-
-      const logBtn = document.createElement('button');
-      logBtn.innerText = 'Логи';
-      logBtn.onclick = () => viewLogs(u.email);
-
-      const configBtn = document.createElement('button');
-      configBtn.innerText = 'Налаштування';
-      configBtn.onclick = () => editConfig(u.email);
-
-      const actionCell = row.insertCell(2);
-      actionCell.appendChild(editBtn);
-      actionCell.appendChild(delBtn);
-      actionCell.appendChild(logBtn);
-      actionCell.appendChild(configBtn);
+      const actions = row.insertCell(2);
+      actions.appendChild(createActionBtn('Редагувати', () => openEditModal(u.email, u.role)));
+      actions.appendChild(createActionBtn('Видалити', () => deleteUser(u.email)));
+      actions.appendChild(createActionBtn('Логи', () => viewLogs(u.email)));
+      actions.appendChild(createActionBtn('Налаштування', () => viewConfig(u.email)));
     });
   }).getAllUsers();
+}
 
-  function openEditModal(email) {
-    // Відкрити модальне вікно для редагування ролі
-  }
-  function deleteUser(email) {
-    google.script.run.deleteUser(email);
-    location.reload();
-  }
-  function viewLogs(email) {
-    google.script.run.withSuccessHandler(showLogsModal).getUserLogs(email);
-  }
-  function editConfig(email) {
-    google.script.run.withSuccessHandler(showConfigModal).getUserConfig(email);
-  }
+function createActionBtn(label, handler) {
+  const btn = document.createElement('button');
+  btn.innerText = label;
+  btn.onclick = handler;
+  return btn;
+}
+
+// Edit user role modal
+function openEditModal(email, role) {
+  const html = `
+    <h3>Редагування ролі</h3>
+    <form onsubmit="return false;">
+      <label>Емейл: <input type="text" value="${email}" readonly></label>
+      <label>Роль: 
+        <select id="editRole">
+          <option value="user"${role === "user" ? " selected" : ""}>user</option>
+          <option value="admin"${role === "admin" ? " selected" : ""}>admin</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button onclick="saveRole('${email}')">Зберегти</button>
+        <button onclick="closeModal('editModal')">Скасувати</button>
+      </div>
+    </form>
+  `;
+  showModal('editModal', html);
+}
+
+function saveRole(email) {
+  const newRole = document.getElementById('editRole').value;
+  google.script.run.withSuccessHandler(() => {
+    reloadUsers();
+    closeModal('editModal');
+  }).updateUserRole(email, newRole);
+}
+
+// Delete user
+function deleteUser(email) {
+  if (!confirm(`Видалити користувача ${email}?`)) return;
+  google.script.run.withSuccessHandler(reloadUsers).deleteUser(email);
+}
+
+// View logs modal
+function viewLogs(email) {
+  google.script.run.withSuccessHandler(logs => {
+    let html = `<h3>Логи для ${email}</h3><div style="max-height:250px;overflow:auto;"><table style="width:100%;"><tr><th>Дата</th><th>Копія</th><th>Статус</th><th>Деталі</th></tr>`;
+    logs.forEach(r => {
+      html += `<tr><td>${r[0]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]||''}</td></tr>`;
+    });
+    html += `</table></div><div class="actions"><button onclick="closeModal('logModal')">Закрити</button></div>`;
+    showModal('logModal', html);
+  }).getUserLogs(email);
+}
+
+// View config modal
+function viewConfig(email) {
+  google.script.run.withSuccessHandler(cfg => {
+    if (!cfg) {
+      showModal('configModal', `<h3>Налаштування для ${email}</h3><p>Не знайдено.</p><div class="actions"><button onclick="closeModal('configModal')">Закрити</button></div>`);
+      return;
+    }
+    let html = `<h3>Налаштування для ${email}</h3>
+      <form onsubmit="return false;">
+        <label>Папки: <input type="text" value="${cfg.folderIds.join(', ')}" readonly></label>
+        <label>Backup folder: <input type="text" value="${cfg.backupFolderName}" readonly></label>
+        <label>Увімкнено: <input type="checkbox" ${cfg.enabled ? "checked" : ""} disabled></label>
+        <div class="actions"><button onclick="closeModal('configModal')">Закрити</button></div>
+      </form>`;
+    showModal('configModal', html);
+  }).getUserConfig(email);
+}
+
+// Modal close handlers
+document.getElementById('editModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('editModal'); };
+document.getElementById('logModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('logModal'); };
+document.getElementById('configModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('configModal'); };
+
+// Load on page
+reloadUsers();
 </script>
+</body>
+</html>
