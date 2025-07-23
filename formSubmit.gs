@@ -1,27 +1,24 @@
-function getConfig() {
-  const user = Session.getActiveUser().getEmail();
-  const sheet = SpreadsheetApp.openById("ID_ТАБЛИЦІ").getSheetByName("Налаштування");
-  const data = sheet.getDataRange().getValues();
-  const row = data.find(r => r[0] === user);
+// Импортируем функции из config.gs (Apps Script автоматически видит их)
 
-  return {
-    user,
-    folderIds: row ? row[1].split(',') : [],
-    backupFolderName: row ? row[2] : "Резервні копії",
-    enabled: row ? row[3] : true
-  };
-}
-
-function saveConfig(config) {
-  const sheet = SpreadsheetApp.openById("ID_ТАБЛИЦІ").getSheetByName("Налаштування");
-  const data = sheet.getDataRange().getValues();
-  const userIndex = data.findIndex(row => row[0] === config.user);
-
-  if (userIndex > -1) {
-    sheet.getRange(userIndex + 1, 2, 1, 3).setValues([[config.folderIds.join(','), config.backupFolderName, config.enabled]]);
-  } else {
-    sheet.appendRow([config.user, config.folderIds.join(','), config.backupFolderName, config.enabled]);
+/**
+ * Обработчик отправки формы пользователя
+ * @param {Object} formData - данные, полученные из формы
+ * @returns {Object} - результат выполнения
+ */
+function onFormSubmit(formData) {
+  try {
+    var user = Session.getActiveUser().getEmail();
+    var config = getConfig();
+    config.folderIds = formData.folderIds || config.folderIds;
+    config.backupFolderName = formData.backupFolderName || config.backupFolderName;
+    config.enabled = typeof formData.enabled !== 'undefined' ? formData.enabled : config.enabled;
+    config.interval = typeof formData.interval !== 'undefined' ? formData.interval : config.interval;
+    config.telegramId = typeof formData.telegramId !== 'undefined' ? formData.telegramId : config.telegramId;
+    saveConfig(config);
+    logChange(user, 'Збережено налаштування через форму');
+    return { success: true, message: 'Налаштування збережено.' };
+  } catch (e) {
+    logChange(Session.getActiveUser().getEmail(), 'Помилка збереження налаштувань через форму', e.message);
+    return { success: false, message: 'Помилка збереження налаштувань: ' + e.message };
   }
-
-  logChange(config.user, "Змінено налаштування");
 }

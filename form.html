@@ -1,15 +1,368 @@
-<form id="configForm">
-  <input type="text" id="user" readonly>
-  <select id="folderIds" multiple></select>
-  <input type="text" id="backupFolderName" placeholder="Назва резервної папки">
-  <label><input type="checkbox" id="enabled"> Увімкнено</label>
-  <select id="frequency">
-    <option value="5">Кожні 5 хвилин</option>
-    <option value="30">Кожні 30 хвилин</option>
-    <option value="60">Щогодини</option>
-    <option value="daily">Щодня</option>
-    <option value="off">Вимкнено</option>
-  </select>
-  <input type="text" id="telegramId" placeholder="Telegram ID">
-  <button type="submit">Зберегти</button>
-</form>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>Налаштування резервного копіювання</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f8cff;
+      --primary-dark: #2a5db0;
+      --bg: #181c24;
+      --surface: #232837;
+      --surface-light: #2d3347;
+      --text: #f3f6fa;
+      --text-muted: #b0b8c9;
+      --error: #ff4d4f;
+      --success: #4caf50;
+      --radius: 16px;
+      --transition: 0.25s cubic-bezier(.4,0,.2,1);
+      --shadow: 0 8px 32px 0 rgba(79,140,255,0.13);
+      --shadow-hover: 0 12px 40px 0 rgba(79,140,255,0.18);
+      --glow: 0 0 0 0 rgba(79,140,255,0.18);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh;
+      animation: fadeInBg 1.2s;
+    }
+    @keyframes fadeInBg {
+      from { background: #000; }
+      to { background: var(--bg); }
+    }
+    .container {
+      max-width: 500px;
+      margin: 56px auto;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 38px 32px 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+      animation: fadeInUp 0.8s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: none; }
+    }
+    h2 {
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      font-size: 2.1rem;
+      letter-spacing: -1px;
+      color: var(--primary);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      animation: fadeIn 1.2s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: fadeIn 1.2s 0.2s backwards;
+    }
+    label {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      display: block;
+      transition: color var(--transition);
+    }
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--surface-light);
+      background: var(--surface-light);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+      margin-bottom: 0;
+      box-shadow: var(--glow);
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79,140,255,0.18);
+      background: #26304a;
+    }
+    input:disabled, select:disabled {
+      background: #23283755;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .input-row {
+      display: flex;
+      gap: 14px;
+    }
+    .input-row > * { flex: 1; }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 0;
+      animation: fadeIn 1.2s 0.3s backwards;
+    }
+    .checkbox-row label {
+      margin: 0;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    button {
+      padding: 14px 0;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition), transform 0.13s;
+      box-shadow: 0 2px 8px 0 rgba(79,140,255,0.10);
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      will-change: transform;
+    }
+    button:active {
+      background: var(--primary-dark);
+      transform: scale(0.97);
+    }
+    button.secondary {
+      background: var(--surface-light);
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      margin-left: 8px;
+      box-shadow: none;
+    }
+    button.secondary:active {
+      background: #232837;
+    }
+    button .material-icons {
+      font-size: 1.2em;
+      vertical-align: middle;
+      transition: color var(--transition);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      animation: fadeIn 1.2s 0.4s backwards;
+    }
+    .status {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      text-align: center;
+      min-height: 24px;
+      transition: color var(--transition), opacity 0.3s;
+      opacity: 1;
+      animation: fadeIn 1.2s 0.5s backwards;
+    }
+    .status.error { color: var(--error); }
+    .status.success { color: var(--success); }
+    .status.hide { opacity: 0; }
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+      animation: fadeIn 1.2s 0.6s backwards;
+    }
+    .loader .material-icons {
+      font-size: 2.2rem;
+      color: var(--primary);
+      animation: spin 1.2s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    select[multiple] {
+      min-height: 80px;
+      resize: vertical;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 18px 2vw; }
+      h2 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2><span class="material-icons" style="font-size:2.1rem;">cloud_upload</span> Налаштування резервного копіювання</h2>
+    <div id="status" class="status"></div>
+    <form id="configForm" autocomplete="off">
+      <label>Ваш email:
+        <input type="text" id="user" readonly>
+      </label>
+      <label>Папки для резервного копіювання:
+        <select id="folderIds" multiple size="4"></select>
+      </label>
+      <label>Назва резервної папки:
+        <input type="text" id="backupFolderName" placeholder="Назва резервної папки">
+      </label>
+      <div class="input-row">
+        <div class="checkbox-row">
+          <input type="checkbox" id="enabled">
+          <label for="enabled">Увімкнено</label>
+        </div>
+        <label style="flex:2;">Частота копіювання:
+          <select id="frequency">
+            <option value="5">Кожні 5 хвилин</option>
+            <option value="30">Кожні 30 хвилин</option>
+            <option value="60">Щогодини</option>
+            <option value="daily">Щодня</option>
+            <option value="off">Вимкнено</option>
+          </select>
+        </label>
+      </div>
+      <label>Telegram ID для сповіщень:
+        <input type="text" id="telegramId" placeholder="Telegram ID">
+      </label>
+      <div class="actions">
+        <button type="submit" id="saveBtn"><span class="material-icons">save</span> Зберегти</button>
+        <button type="button" class="secondary" id="resetBtn"><span class="material-icons">refresh</span> Скинути</button>
+      </div>
+    </form>
+    <div class="loader" id="loader" style="display:none;"><span class="material-icons">autorenew</span></div>
+  </div>
+  <script>
+    const statusEl = document.getElementById('status');
+    const loader = document.getElementById('loader');
+    const form = document.getElementById('configForm');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className = 'status' + (type ? ' ' + type : '');
+      statusEl.classList.remove('hide');
+      if (msg) statusEl.style.animation = 'fadeIn 0.7s';
+    }
+    function setLoading(loading) {
+      loader.style.display = loading ? 'flex' : 'none';
+      saveBtn.disabled = loading;
+      resetBtn.disabled = loading;
+      form.querySelectorAll('input,select').forEach(el => el.disabled = loading);
+      if (loading) {
+        statusEl.classList.add('hide');
+      }
+    }
+    function fillForm(config) {
+      document.getElementById('user').value = config.user;
+      document.getElementById('backupFolderName').value = config.backupFolderName || 'Резервні копії';
+      document.getElementById('enabled').checked = !!config.enabled;
+      if (!config.enabled || !config.interval || config.interval === 0) {
+        document.getElementById('frequency').value = "off";
+      } else if (config.interval === 1440) {
+        document.getElementById('frequency').value = "daily";
+      } else {
+        document.getElementById('frequency').value = String(config.interval);
+      }
+      document.getElementById('telegramId').value = config.telegramId || "";
+    }
+    function fillFolders(folders, config) {
+      const select = document.getElementById('folderIds');
+      select.innerHTML = '';
+      folders.forEach(f => {
+        const option = document.createElement('option');
+        option.value = f[1];
+        option.text = f[0];
+        if (config.folderIds && config.folderIds.includes(f[1])) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+    function loadConfigAndFolders() {
+      setLoading(true);
+      setStatus('Завантаження...');
+      google.script.run.withSuccessHandler(config => {
+        fillForm(config);
+        google.script.run.withSuccessHandler(folders => {
+          fillFolders(folders, config);
+          setStatus('');
+          setLoading(false);
+        }).getFoldersList();
+      }).getConfig();
+    }
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      setStatus('Збереження...', '');
+      setLoading(true);
+      // Валідація
+      const email = document.getElementById('user').value.trim();
+      if (!email.match(/^[\w\.-]+@[\w\.-]+$/)) {
+        setStatus('Невірний email', 'error'); setLoading(false); return;
+      }
+      const selectedFolders = Array.from(document.getElementById('folderIds').selectedOptions).map(o => o.value);
+      if (!selectedFolders.length) {
+        setStatus('Оберіть хоча б одну папку', 'error'); setLoading(false); return;
+      }
+      const telegramId = document.getElementById('telegramId').value.trim();
+      if (telegramId && !telegramId.match(/^\d+$/)) {
+        setStatus('Невірний Telegram ID', 'error'); setLoading(false); return;
+      }
+      const frequency = document.getElementById('frequency').value;
+      const enabled = document.getElementById('enabled').checked && frequency !== "off";
+      const interval = frequency === "off" ? 0 : (frequency === "daily" ? 1440 : Number(frequency));
+      const config = {
+        user: email,
+        folderIds: selectedFolders,
+        backupFolderName: document.getElementById('backupFolderName').value.trim() || 'Резервні копії',
+        enabled: enabled,
+        interval: interval,
+        telegramId: telegramId
+      };
+      google.script.run.withSuccessHandler(res => {
+        if (res && res.success) {
+          setStatus('Налаштування збережено!', 'success');
+        } else {
+          setStatus(res && res.message ? res.message : 'Помилка збереження', 'error');
+        }
+        setLoading(false);
+      }).withFailureHandler(e => {
+        setStatus('Помилка збереження: ' + (e.message || e), 'error');
+        setLoading(false);
+      }).onFormSubmit(config);
+    };
+    resetBtn.onclick = function() {
+      loadConfigAndFolders();
+      setStatus('Налаштування скинуто', '');
+    };
+    document.getElementById('frequency').onchange = function() {
+      if (this.value === "off") {
+        document.getElementById('enabled').checked = false;
+      } else {
+        document.getElementById('enabled').checked = true;
+      }
+    };
+    document.getElementById('enabled').onchange = function() {
+      if (!this.checked) {
+        document.getElementById('frequency').value = "off";
+      } else if (document.getElementById('frequency').value === "off") {
+        document.getElementById('frequency').value = "5";
+      }
+    };
+    // Автоматичне оновлення даних (кожні 30 сек)
+    setInterval(loadConfigAndFolders, 30000);
+    // Первинне завантаження
+    loadConfigAndFolders();
+  </script>
+</body>
+</html>

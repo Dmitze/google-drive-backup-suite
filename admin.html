@@ -1,146 +1,381 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
   <meta charset="utf-8">
   <title>Адмін-панель</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    body { background: #222; color: #eee; font-family: Arial, sans-serif; }
-    table { width: 100%; background: #2d2d2d; color: #eee; border-collapse: collapse; }
-    th, td { padding: 8px; border: 1px solid #444; }
-    th { background: #333; }
-    button { margin: 2px; padding: 4px 8px; background: #444; color: #eee; border: none; border-radius: 3px; cursor: pointer; }
-    button:hover { background: #666; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
-    .modal-content { background: #232323; padding: 20px; border-radius: 6px; max-width: 400px; }
-    .modal label { display: block; margin-bottom: 8px; }
-    .modal input, .modal select { width: 100%; margin-bottom: 10px; padding: 6px; background: #333; color: #eee; border: 1px solid #444; border-radius: 3px; }
-    .modal .actions { text-align: right; }
+    :root {
+      --primary: #4f8cff;
+      --primary-dark: #2a5db0;
+      --bg: #181c24;
+      --surface: #232837;
+      --surface-light: #2d3347;
+      --text: #f3f6fa;
+      --text-muted: #b0b8c9;
+      --error: #ff4d4f;
+      --success: #4caf50;
+      --radius: 16px;
+      --transition: 0.25s cubic-bezier(.4,0,.2,1);
+      --shadow: 0 8px 32px 0 rgba(79,140,255,0.13);
+      --shadow-hover: 0 12px 40px 0 rgba(79,140,255,0.18);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh;
+      animation: fadeInBg 1.2s;
+    }
+    @keyframes fadeInBg {
+      from { background: #000; }
+      to { background: var(--bg); }
+    }
+    .container {
+      max-width: 900px;
+      margin: 48px auto;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 28px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+      animation: fadeInUp 0.8s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: none; }
+    }
+    h2 {
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      font-size: 2.1rem;
+      letter-spacing: -1px;
+      color: var(--primary);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      animation: fadeIn 1.2s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .status {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      text-align: center;
+      min-height: 24px;
+      transition: color var(--transition), opacity 0.3s;
+      opacity: 1;
+      animation: fadeIn 1.2s 0.5s backwards;
+    }
+    .status.error { color: var(--error); }
+    .status.success { color: var(--success); }
+    .status.hide { opacity: 0; }
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+      animation: fadeIn 1.2s 0.6s backwards;
+    }
+    .loader .material-icons {
+      font-size: 2.2rem;
+      color: var(--primary);
+      animation: spin 1.2s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    table {
+      width: 100%;
+      background: var(--surface-light);
+      color: var(--text);
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 12px 0 rgba(79,140,255,0.08);
+      animation: fadeIn 1.2s 0.2s backwards;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1.5px solid #2a3142;
+      text-align: left;
+      font-size: 1rem;
+    }
+    th {
+      background: #26304a;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 1.05rem;
+      border-bottom: 2.5px solid var(--primary);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr {
+      transition: background var(--transition);
+    }
+    tr:hover {
+      background: #232837cc;
+    }
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition), transform 0.13s;
+      box-shadow: 0 2px 8px 0 rgba(79,140,255,0.10);
+      will-change: transform;
+    }
+    .action-btn:active {
+      background: var(--primary-dark);
+      transform: scale(0.97);
+    }
+    .action-btn.secondary {
+      background: var(--surface-light);
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      box-shadow: none;
+    }
+    .action-btn.secondary:active {
+      background: #232837;
+    }
+    .action-btn .material-icons {
+      font-size: 1.1em;
+      vertical-align: middle;
+      transition: color var(--transition);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.75);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.5s;
+    }
+    .modal-content {
+      background: #232323;
+      padding: 28px 24px 18px 24px;
+      border-radius: 14px;
+      max-width: 420px;
+      min-width: 260px;
+      box-shadow: var(--shadow-hover);
+      animation: fadeInUp 0.5s;
+    }
+    .modal label { display: block; margin-bottom: 8px; color: var(--text-muted); }
+    .modal input, .modal select {
+      width: 100%; margin-bottom: 10px; padding: 10px; background: #333; color: #eee; border: 1px solid #444; border-radius: 7px;
+      font-size: 1rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .modal input:focus, .modal select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79,140,255,0.15);
+    }
+    .modal .actions { text-align: right; margin-top: 10px; }
+    .modal .actions button { margin-left: 8px; }
+    @media (max-width: 900px) {
+      .container { max-width: 99vw; padding: 10px 2vw; }
+      table { font-size: 0.95rem; }
+      .modal-content { min-width: 0; max-width: 98vw; }
+    }
   </style>
 </head>
 <body>
-<h2>Користувачі</h2>
-<table id="userList">
-  <tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>
-</table>
-
-<div class="modal" id="editModal">
-  <div class="modal-content" id="editModalContent"></div>
-</div>
-<div class="modal" id="logModal">
-  <div class="modal-content" id="logModalContent"></div>
-</div>
-<div class="modal" id="configModal">
-  <div class="modal-content" id="configModalContent"></div>
-</div>
-
-<script>
-function closeModal(id) {
-  document.getElementById(id).style.display = "none";
-  document.getElementById(id + "Content").innerHTML = "";
-}
-
-function showModal(id, html) {
-  document.getElementById(id + "Content").innerHTML = html;
-  document.getElementById(id).style.display = "flex";
-}
-
-function reloadUsers() {
-  google.script.run.withSuccessHandler(users => {
-    const table = document.getElementById('userList');
-    table.innerHTML = '<tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>';
-    users.forEach(u => {
-      const row = table.insertRow();
-      row.insertCell(0).innerText = u.email;
-      row.insertCell(1).innerText = u.role;
-
-      const actions = row.insertCell(2);
-      actions.appendChild(createActionBtn('Редагувати', () => openEditModal(u.email, u.role)));
-      actions.appendChild(createActionBtn('Видалити', () => deleteUser(u.email)));
-      actions.appendChild(createActionBtn('Логи', () => viewLogs(u.email)));
-      actions.appendChild(createActionBtn('Налаштування', () => viewConfig(u.email)));
-    });
-  }).getAllUsers();
-}
-
-function createActionBtn(label, handler) {
-  const btn = document.createElement('button');
-  btn.innerText = label;
-  btn.onclick = handler;
-  return btn;
-}
-
-// Edit user role modal
-function openEditModal(email, role) {
-  const html = `
-    <h3>Редагування ролі</h3>
-    <form onsubmit="return false;">
-      <label>Емейл: <input type="text" value="${email}" readonly></label>
-      <label>Роль: 
-        <select id="editRole">
-          <option value="user"${role === "user" ? " selected" : ""}>user</option>
-          <option value="admin"${role === "admin" ? " selected" : ""}>admin</option>
-        </select>
-      </label>
-      <div class="actions">
-        <button onclick="saveRole('${email}')">Зберегти</button>
-        <button onclick="closeModal('editModal')">Скасувати</button>
-      </div>
-    </form>
-  `;
-  showModal('editModal', html);
-}
-
-function saveRole(email) {
-  const newRole = document.getElementById('editRole').value;
-  google.script.run.withSuccessHandler(() => {
-    reloadUsers();
-    closeModal('editModal');
-  }).updateUserRole(email, newRole);
-}
-
-// Delete user
-function deleteUser(email) {
-  if (!confirm(`Видалити користувача ${email}?`)) return;
-  google.script.run.withSuccessHandler(reloadUsers).deleteUser(email);
-}
-
-// View logs modal
-function viewLogs(email) {
-  google.script.run.withSuccessHandler(logs => {
-    let html = `<h3>Логи для ${email}</h3><div style="max-height:250px;overflow:auto;"><table style="width:100%;"><tr><th>Дата</th><th>Копія</th><th>Статус</th><th>Деталі</th></tr>`;
-    logs.forEach(r => {
-      html += `<tr><td>${r[0]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]||''}</td></tr>`;
-    });
-    html += `</table></div><div class="actions"><button onclick="closeModal('logModal')">Закрити</button></div>`;
-    showModal('logModal', html);
-  }).getUserLogs(email);
-}
-
-// View config modal
-function viewConfig(email) {
-  google.script.run.withSuccessHandler(cfg => {
-    if (!cfg) {
-      showModal('configModal', `<h3>Налаштування для ${email}</h3><p>Не знайдено.</p><div class="actions"><button onclick="closeModal('configModal')">Закрити</button></div>`);
-      return;
+  <div class="container">
+    <h2><span class="material-icons">admin_panel_settings</span> Адмін-панель</h2>
+    <div id="status" class="status"></div>
+    <div class="loader" id="loader" style="display:none;"><span class="material-icons">autorenew</span></div>
+    <table id="userList">
+      <tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>
+    </table>
+  </div>
+  <div class="modal" id="editModal">
+    <div class="modal-content" id="editModalContent"></div>
+  </div>
+  <div class="modal" id="logModal">
+    <div class="modal-content" id="logModalContent"></div>
+  </div>
+  <div class="modal" id="configModal">
+    <div class="modal-content" id="configModalContent"></div>
+  </div>
+  <script>
+    const statusEl = document.getElementById('status');
+    const loader = document.getElementById('loader');
+    const userList = document.getElementById('userList');
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className = 'status' + (type ? ' ' + type : '');
+      statusEl.classList.remove('hide');
+      if (msg) statusEl.style.animation = 'fadeIn 0.7s';
     }
-    let html = `<h3>Налаштування для ${email}</h3>
-      <form onsubmit="return false;">
-        <label>Папки: <input type="text" value="${cfg.folderIds.join(', ')}" readonly></label>
-        <label>Backup folder: <input type="text" value="${cfg.backupFolderName}" readonly></label>
-        <label>Увімкнено: <input type="checkbox" ${cfg.enabled ? "checked" : ""} disabled></label>
-        <div class="actions"><button onclick="closeModal('configModal')">Закрити</button></div>
-      </form>`;
-    showModal('configModal', html);
-  }).getUserConfig(email);
-}
-
-// Modal close handlers
-document.getElementById('editModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('editModal'); };
-document.getElementById('logModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('logModal'); };
-document.getElementById('configModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('configModal'); };
-
-// Load on page
-reloadUsers();
-</script>
+    function setLoading(loading) {
+      loader.style.display = loading ? 'flex' : 'none';
+      if (loading) statusEl.classList.add('hide');
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
+      document.getElementById(id + "Content").innerHTML = "";
+    }
+    function showModal(id, html) {
+      document.getElementById(id + "Content").innerHTML = html;
+      document.getElementById(id).style.display = "flex";
+    }
+    function reloadUsers() {
+      setLoading(true);
+      setStatus('Завантаження...');
+      google.script.run.withSuccessHandler(users => {
+        userList.innerHTML = '<tr><th>Емейл</th><th>Роль</th><th>Дія</th></tr>';
+        users.forEach(u => {
+          const row = userList.insertRow();
+          row.insertCell(0).innerText = u.email;
+          row.insertCell(1).innerText = u.role;
+          const actions = row.insertCell(2);
+          actions.className = 'actions-cell';
+          actions.appendChild(createActionBtn('Редагувати', 'edit', () => openEditModal(u.email, u.role)));
+          actions.appendChild(createActionBtn('Видалити', 'delete', () => deleteUser(u.email)));
+          actions.appendChild(createActionBtn('Логи', 'list_alt', () => viewLogs(u.email)));
+          actions.appendChild(createActionBtn('Налаштування', 'settings', () => viewConfig(u.email)));
+        });
+        setStatus('');
+        setLoading(false);
+      }).withFailureHandler(e => {
+        setStatus('Помилка завантаження: ' + (e.message || e), 'error');
+        setLoading(false);
+      }).getAllUsers();
+    }
+    function createActionBtn(label, icon, handler) {
+      const btn = document.createElement('button');
+      btn.className = 'action-btn';
+      btn.innerHTML = `<span class="material-icons">${icon}</span> ${label}`;
+      btn.onclick = handler;
+      return btn;
+    }
+    // Edit user role modal
+    function openEditModal(email, role) {
+      const html = `
+        <h3 style="margin-top:0;">Редагування ролі</h3>
+        <form onsubmit="return false;">
+          <label>Емейл: <input type="text" value="${email}" readonly></label>
+          <label>Роль: 
+            <select id="editRole">
+              <option value="user"${role === "user" ? " selected" : ""}>user</option>
+              <option value="admin"${role === "admin" ? " selected" : ""}>admin</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button type="button" class="action-btn" onclick="saveRole('${email}')"><span class="material-icons">save</span> Зберегти</button>
+            <button type="button" class="action-btn secondary" onclick="closeModal('editModal')"><span class="material-icons">close</span> Скасувати</button>
+          </div>
+        </form>
+      `;
+      showModal('editModal', html);
+    }
+    window.saveRole = function(email) {
+      const newRole = document.getElementById('editRole').value;
+      setStatus('Збереження...', '');
+      setLoading(true);
+      google.script.run.withSuccessHandler(() => {
+        reloadUsers();
+        closeModal('editModal');
+        setStatus('Роль оновлено!', 'success');
+        setLoading(false);
+      }).withFailureHandler(e => {
+        setStatus('Помилка зміни ролі: ' + (e.message || e), 'error');
+        setLoading(false);
+      }).updateUserRole(email, newRole);
+    }
+    // Delete user
+    function deleteUser(email) {
+      if (!confirm(`Видалити користувача ${email}?`)) return;
+      setStatus('Видалення...', '');
+      setLoading(true);
+      google.script.run.withSuccessHandler(() => {
+        reloadUsers();
+        setStatus('Користувача видалено!', 'success');
+        setLoading(false);
+      }).withFailureHandler(e => {
+        setStatus('Помилка видалення: ' + (e.message || e), 'error');
+        setLoading(false);
+      }).deleteUser(email);
+    }
+    // View logs modal
+    function viewLogs(email) {
+      setStatus('Завантаження логів...', '');
+      setLoading(true);
+      google.script.run.withSuccessHandler(logs => {
+        let html = `<h3 style="margin-top:0;">Логи для ${email}</h3><div style="max-height:250px;overflow:auto;"><table style="width:100%;"><tr><th>Дата</th><th>Копія</th><th>Статус</th><th>Деталі</th></tr>`;
+        logs.forEach(r => {
+          html += `<tr><td>${r[0]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]||''}</td></tr>`;
+        });
+        html += `</table></div><div class="actions"><button type="button" class="action-btn secondary" onclick="closeModal('logModal')"><span class="material-icons">close</span> Закрити</button></div>`;
+        showModal('logModal', html);
+        setStatus('');
+        setLoading(false);
+      }).withFailureHandler(e => {
+        setStatus('Помилка логів: ' + (e.message || e), 'error');
+        setLoading(false);
+      }).getUserLogs(email);
+    }
+    // View config modal
+    function viewConfig(email) {
+      setStatus('Завантаження налаштувань...', '');
+      setLoading(true);
+      google.script.run.withSuccessHandler(cfg => {
+        if (!cfg) {
+          showModal('configModal', `<h3 style="margin-top:0;">Налаштування для ${email}</h3><p>Не знайдено.</p><div class="actions"><button type="button" class="action-btn secondary" onclick="closeModal('configModal')"><span class="material-icons">close</span> Закрити</button></div>`);
+          setStatus('');
+          setLoading(false);
+          return;
+        }
+        let html = `<h3 style="margin-top:0;">Налаштування для ${email}</h3>
+          <form onsubmit="return false;">
+            <label>Папки: <input type="text" value="${cfg.folderIds.join(', ')}" readonly></label>
+            <label>Backup folder: <input type="text" value="${cfg.backupFolderName}" readonly></label>
+            <label>Увімкнено: <input type="checkbox" ${cfg.enabled ? "checked" : ""} disabled></label>
+            <label>Частота: <input type="text" value="${cfg.interval || ''}" readonly></label>
+            <label>Telegram ID: <input type="text" value="${cfg.telegramId || ''}" readonly></label>
+            <div class="actions"><button type="button" class="action-btn secondary" onclick="closeModal('configModal')"><span class="material-icons">close</span> Закрити</button></div>
+          </form>`;
+        showModal('configModal', html);
+        setStatus('');
+        setLoading(false);
+      }).withFailureHandler(e => {
+        setStatus('Помилка налаштувань: ' + (e.message || e), 'error');
+        setLoading(false);
+      }).getUserConfig(email);
+    }
+    // Modal close handlers
+    document.getElementById('editModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('editModal'); };
+    document.getElementById('logModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('logModal'); };
+    document.getElementById('configModal').onclick = e => { if (e.target.classList.contains('modal')) closeModal('configModal'); };
+    // Load on page
+    reloadUsers();
+    // Автообновление списка пользователей (каждые 60 сек)
+    setInterval(reloadUsers, 60000);
+  </script>
 </body>
 </html>

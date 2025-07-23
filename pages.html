@@ -1,16 +1,131 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <title>Резервне копіювання</title>
-  </head>
-  <body>
-
-    <!-- Форма для користувача -->
-    <?!= HtmlService.createHtmlOutputFromFile('form').getContent(); ?>
-
-    <!-- Адмін-панель (показується лише адміну) -->
-    <?!= HtmlService.createHtmlOutputFromFile('admin').getContent(); ?>
-
-  </body>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <base target="_top">
+  <title>Резервне копіювання</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f8cff;
+      --primary-dark: #2a5db0;
+      --bg: #181c24;
+      --surface: #232837;
+      --surface-light: #2d3347;
+      --text: #f3f6fa;
+      --text-muted: #b0b8c9;
+      --error: #ff4d4f;
+      --success: #4caf50;
+      --radius: 16px;
+      --transition: 0.25s cubic-bezier(.4,0,.2,1);
+      --shadow: 0 8px 32px 0 rgba(79,140,255,0.13);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh;
+      animation: fadeInBg 1.2s;
+    }
+    @keyframes fadeInBg {
+      from { background: #000; }
+      to { background: var(--bg); }
+    }
+    .main-container {
+      max-width: 1100px;
+      margin: 48px auto;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 28px 28px 28px;
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+      position: relative;
+      animation: fadeInUp 0.8s cubic-bezier(.4,0,.2,1);
+      justify-content: center;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: none; }
+    }
+    .panel {
+      flex: 1 1 0;
+      min-width: 320px;
+      max-width: 520px;
+      background: var(--surface-light);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px 0 rgba(79,140,255,0.08);
+      padding: 0 0 0 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 1.2s 0.2s backwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .panel-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0 0 18px 0;
+      padding: 24px 24px 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .error {
+      color: var(--error);
+      background: #2a1c1c;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 24px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.7s;
+    }
+    @media (max-width: 1100px) {
+      .main-container { flex-direction: column; gap: 24px; padding: 10px 2vw; }
+      .panel { max-width: 99vw; }
+    }
+    @media (max-width: 600px) {
+      .main-container { padding: 0; }
+      .panel { padding: 0; }
+      .panel-title { font-size: 1.05rem; padding: 18px 8px 0 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="panel" id="user-form-panel">
+      <div class="panel-title"><span class="material-icons">person</span> Користувач</div>
+      <? try { ?>
+        <?!= HtmlService.createHtmlOutputFromFile('form').getContent(); ?>
+      <? } catch (e) { ?>
+        <div class="error"><span class="material-icons">error</span> Помилка завантаження форми: <?= e.message ?></div>
+      <? } ?>
+    </div>
+    <div class="panel" id="admin-panel-panel">
+      <div class="panel-title"><span class="material-icons">admin_panel_settings</span> Адмін-панель</div>
+      <? try { ?>
+        <? if (typeof isAdmin !== 'undefined' && isAdmin) { ?>
+          <?!= HtmlService.createHtmlOutputFromFile('admin').getContent(); ?>
+        <? } else { ?>
+          <div class="error"><span class="material-icons">lock</span> У вас немає прав для перегляду адмін-панелі.</div>
+        <? } ?>
+      <? } catch (e) { ?>
+        <div class="error"><span class="material-icons">error</span> Помилка завантаження адмін-панелі: <?= e.message ?></div>
+      <? } ?>
+    </div>
+  </div>
+</body>
 </html>
